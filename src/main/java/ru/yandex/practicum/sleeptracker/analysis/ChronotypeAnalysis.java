@@ -1,6 +1,9 @@
 package ru.yandex.practicum.sleeptracker.analysis;
 
-import ru.yandex.practicum.sleeptracker.*;
+import ru.yandex.practicum.sleeptracker.Chronotype;
+import ru.yandex.practicum.sleeptracker.SleepAnalysis;
+import ru.yandex.practicum.sleeptracker.SleepAnalysisResult;
+import ru.yandex.practicum.sleeptracker.SleepingSession;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -9,6 +12,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ChronotypeAnalysis implements SleepAnalysis {
+
+    private static final LocalTime NIGHT_SESSION_START = LocalTime.of(18, 0);
+    private static final LocalTime NIGHT_SESSION_END = LocalTime.of(12, 0);
+
+    private static final LocalTime OWL_START = LocalTime.of(23, 0);
+    private static final LocalTime OWL_END = LocalTime.of(9, 0);
+
+    private static final LocalTime LARK_START = LocalTime.of(22, 0);
+    private static final LocalTime LARK_END = LocalTime.of(7, 0);
+
+    private static final String DESCRIPTION = "Хронотип";
 
     @Override
     public SleepAnalysisResult apply(List<SleepingSession> sessions) {
@@ -21,7 +35,9 @@ public class ChronotypeAnalysis implements SleepAnalysis {
         long lark = counts.getOrDefault(Chronotype.LARK, 0L);
         long pigeon = counts.getOrDefault(Chronotype.PIGEON, 0L);
 
-        long max = Math.max(owl, Math.max(lark, pigeon));
+        long max = List.of(owl, lark, pigeon).stream()
+                .max(Long::compareTo)
+                .orElse(0L);
 
         long typesWithMax = List.of(owl, lark, pigeon).stream()
                 .filter(count -> count == max)
@@ -39,28 +55,26 @@ public class ChronotypeAnalysis implements SleepAnalysis {
             result = Chronotype.PIGEON;
         }
 
-        return new SleepAnalysisResult("Хронотип", result);
+        return new SleepAnalysisResult(DESCRIPTION, result);
     }
 
     private boolean isNightSession(SleepingSession session) {
         LocalTime start = session.getStart().toLocalTime();
         LocalTime end = session.getEnd().toLocalTime();
 
-        return start.isAfter(LocalTime.of(18, 0))
-                || end.isBefore(LocalTime.of(12, 0));
+        return start.isAfter(NIGHT_SESSION_START)
+                || end.isBefore(NIGHT_SESSION_END);
     }
 
     private Chronotype getChronotype(SleepingSession session) {
         LocalTime start = session.getStart().toLocalTime();
         LocalTime end = session.getEnd().toLocalTime();
 
-        if (start.isAfter(LocalTime.of(23, 0))
-                && end.isAfter(LocalTime.of(9, 0))) {
+        if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
             return Chronotype.OWL;
         }
 
-        if (start.isBefore(LocalTime.of(22, 0))
-                && end.isBefore(LocalTime.of(7, 0))) {
+        if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
             return Chronotype.LARK;
         }
 

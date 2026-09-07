@@ -6,17 +6,19 @@ import ru.yandex.practicum.sleeptracker.SleepingSession;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.LongStream;
 
 public class SleeplessNightsAnalysis implements SleepAnalysis {
 
     private static final LocalTime NIGHT_END = LocalTime.of(6, 0);
+    private static final String DESCRIPTION = "Количество бессонных ночей";
 
     @Override
     public SleepAnalysisResult apply(List<SleepingSession> sessions) {
         if (sessions.isEmpty()) {
-            return new SleepAnalysisResult("Количество бессонных ночей", 0);
+            return new SleepAnalysisResult(DESCRIPTION, 0);
         }
 
         LocalDate firstNight = sessions.get(0).getStart().toLocalDate();
@@ -29,7 +31,7 @@ public class SleeplessNightsAnalysis implements SleepAnalysis {
 
         long result = LongStream.rangeClosed(
                         0,
-                        java.time.temporal.ChronoUnit.DAYS.between(firstNight, lastNight))
+                        ChronoUnit.DAYS.between(firstNight, lastNight))
                 .mapToObj(firstNight::plusDays)
                 .filter(night -> sessions.stream()
                         .noneMatch(session -> {
@@ -41,6 +43,6 @@ public class SleeplessNightsAnalysis implements SleepAnalysis {
                         }))
                 .count();
 
-        return new SleepAnalysisResult("Количество бессонных ночей", result);
+        return new SleepAnalysisResult(DESCRIPTION, result);
     }
 }
